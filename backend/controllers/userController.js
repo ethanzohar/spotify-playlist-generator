@@ -61,7 +61,7 @@ class UserController {
   static async deleteUser(userId) {
     const user = await UserController.getUser(userId);
 
-    if (user.stripeId) {
+    if (user && user.stripeId) {
       try {
         await StripeHelper.cancelStripeSubscription(user.stripeId);
       } catch (err) {
@@ -70,8 +70,14 @@ class UserController {
           err.raw.code !== 'resource_missing'
         ) {
           throw err;
+        } else {
+          console.log('error in deleteUser calling cancelStripeSubscription');
+          console.log(JSON.stringify(err));
         }
       }
+    } else {
+      console.log(`Unable to find user or user Stripe ID in "deleteUser"`);
+      console.log(JSON.stringify(user));
     }
 
     const deleteResponse = await UserModel.deleteOne({
